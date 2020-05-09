@@ -12,17 +12,17 @@ func main() {
 
 	//http.HandleFunc("/", indexHandler)
 	controllers.RegisterControllers()
-	http.ListenAndServe(":3000", nil)
-		
+	http.ListenAndServe(":8080", nil)
+
 	// [START setting_port]
 	port := os.Getenv("PORT")
 	if port == "" {
-			port = "3000"
-			log.Printf("Defaulting to port %s", port)
+		port = "8080"
+		log.Printf("Defaulting to port %s", port)
 	}
 	log.Printf("Listening on port %s", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
-			log.Fatal(err)
+		log.Fatal(err)
 	}
 	// [END setting_port]
 }
