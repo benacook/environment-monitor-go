@@ -12,7 +12,6 @@ func main() {
 
 	//http.HandleFunc("/", indexHandler)
 	controllers.RegisterControllers()
-	http.ListenAndServe(":8080", nil)
 
 	// [START setting_port]
 	port := os.Getenv("PORT")
