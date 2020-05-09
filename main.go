@@ -9,6 +9,10 @@ import (
 )
 
 func main() {
+
+	//http.HandleFunc("/", indexHandler)
+	controllers.RegisterControllers()
+	http.ListenAndServe(":3000", nil)
 		
 	// [START setting_port]
 	port := os.Getenv("PORT")
@@ -21,7 +25,4 @@ func main() {
 			log.Fatal(err)
 	}
 	// [END setting_port]
-
-	controllers.RegisterControllers()
-	http.ListenAndServe(":3000", nil)
 }
