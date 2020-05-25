@@ -1,8 +1,12 @@
 package models
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"github.com/benacook/environment-monitor-go/mongoDB"
+	"go.mongodb.org/mongo-driver/bson"
+	"log"
 )
 
 //SensorReading data type
@@ -25,12 +29,35 @@ func GetSensorReadings() []*SensorReading {
 //AddSensorReading blah
 func AddSensorReading(u SensorReading) (SensorReading, error) {
 	if u.ID != 0 {
-		return SensorReading{}, errors.New("New SensorReading must not include ID, or it must be zero")
+		return SensorReading{},
+			errors.New("New SensorReading must not include ID, or it must be zero")
 	}
 	u.ID = nextID
 	nextID++
 	SensorReadings = append(SensorReadings, &u)
+	err := LogSensorReading(u)
+	if err != nil {
+		log.Fatal(err)
+		return u, err
+	}
 	return u, nil
+}
+
+func LogSensorReading(u SensorReading) error {
+	mdb := mongoDB.Mongodb{}
+	err := mdb.Connect("mongodb://localhost:27017")
+	if err != nil {
+		return err
+	}
+
+	mdb.InitDatabase()
+
+	err = mdb.InsertElement(u)
+	if err != nil {
+		return err
+	}
+	mdb.Client.Disconnect(mdb.Context)
+	return nil
 }
 
 //GetSensorReadingByID blah
@@ -45,12 +72,32 @@ func GetSensorReadingByID(id int) (SensorReading, error) {
 
 //GetLatestSensorReading blah
 func GetLatestSensorReading() (SensorReading, error) {
+	GetSensorReading()
 	for _, u := range SensorReadings {
 		if u.ID == (nextID - 1) {
 			return *u, nil
 		}
 	}
 	return SensorReading{}, fmt.Errorf("no readings yet")
+}
+
+func GetSensorReading() error {
+	mdb := mongoDB.Mongodb{}
+	err := mdb.Connect("mongodb://localhost:27017")
+	if err != nil {
+		return err
+	}
+
+	mdb.InitDatabase()
+
+	var result SensorReading
+	err = mdb.Collection.FindOne(context.TODO(), bson.D{}).Decode(&result)
+	if err != nil {
+		return err
+	}
+	fmt.Println(result)
+	mdb.Client.Disconnect(mdb.Context)
+	return nil
 }
 
 //UpdateSensorReading blah
