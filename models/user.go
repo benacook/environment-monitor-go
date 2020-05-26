@@ -21,6 +21,10 @@ var (
 	nextID         = 1
 )
 
+const (
+	dbUri = "mongodb://mongodb:27017"
+)
+
 //GetSensorReadings returns the array of SensorReadings
 func GetSensorReadings() []*SensorReading {
 	return SensorReadings
@@ -45,7 +49,7 @@ func AddSensorReading(u SensorReading) (SensorReading, error) {
 
 func LogSensorReading(u SensorReading) error {
 	mdb := mongoDB.Mongodb{}
-	err := mdb.Connect("mongodb://localhost:27017")
+	err := mdb.Connect(dbUri)
 	if err != nil {
 		return err
 	}
@@ -72,32 +76,30 @@ func GetSensorReadingByID(id int) (SensorReading, error) {
 
 //GetLatestSensorReading blah
 func GetLatestSensorReading() (SensorReading, error) {
-	GetSensorReading()
-	for _, u := range SensorReadings {
-		if u.ID == (nextID - 1) {
-			return *u, nil
-		}
+	result, err := GetSensorReading()
+	if err != nil {
+		return SensorReading{}, err
 	}
-	return SensorReading{}, fmt.Errorf("no readings yet")
+	return result, nil
 }
 
-func GetSensorReading() error {
+func GetSensorReading() (SensorReading, error) {
 	mdb := mongoDB.Mongodb{}
-	err := mdb.Connect("mongodb://localhost:27017")
+	err := mdb.Connect(dbUri)
 	if err != nil {
-		return err
+		return SensorReading{}, err
 	}
 
 	mdb.InitDatabase()
 
-	var result SensorReading
-	err = mdb.Collection.FindOne(context.TODO(), bson.D{}).Decode(&result)
+	result := SensorReading{}
+	err = mdb.Collection.FindOne(context.TODO(), bson.D{{"id", nextID - 1}}).Decode(&result)
 	if err != nil {
-		return err
+		return SensorReading{}, err
 	}
 	fmt.Println(result)
 	mdb.Client.Disconnect(mdb.Context)
-	return nil
+	return result, nil
 }
 
 //UpdateSensorReading blah

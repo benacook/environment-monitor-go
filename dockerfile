@@ -7,6 +7,6 @@ COPY . .
 RUN go get -d -v ./...
 RUN go install ./...
 
-EXPOSE 3000
+EXPOSE 8080
 
 ENTRYPOINT ["environment-monitor-go"]
